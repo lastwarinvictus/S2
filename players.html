@@ -534,7 +534,7 @@
                     const serverMs = utcMs - (2 * 3600000); 
                     const sDate = new Date(serverMs);
                     let diff = targetDay - sDate.getUTCDay();
-                    if(diff < 0 || (diff === 0 && (sDate.getUTCHour() * 60 + sDate.getUTCMinutes() > 750))) diff += 7;
+                    if(diff < 0 || (diff === 0 && (sDate.getUTCHours() * 60 + sDate.getUTCMinutes() > 750))) diff += 7;
                     
                     const targetServerEpoch = Date.UTC(sDate.getUTCFullYear(), sDate.getUTCMonth(), sDate.getUTCDate() + diff, 14, 30, 0);
                     return formatter.format(new Date(targetServerEpoch));
