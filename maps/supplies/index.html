@@ -3,28 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>S2 Supplies Map</title>
-    <link rel="stylesheet" href="./style.css">
-
+    <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-    <h1>Season 2 — Supplies</h1>
+    <main class="container">
+        <header>
+            <h1>S2 Supplies Map</h1>
+            <div id="dataUpdated" class="data-updated">
+                Data updated: loading...
+            </div>
+        </header>
 
-    <div id="status">
-        Loading coordinates...
-    </div>
+        <section class="stats">
+            <div class="stat">
+                <span class="stat-label">Supplies</span>
+                <span id="supplyCount" class="stat-value">Loading...</span>
+            </div>
+        </section>
 
-    <div id="map-container"></div>
+        <section class="map-section">
+            <div id="map" class="map"></div>
+        </section>
 
-    <div id="info">
-        Click a supply marker to see its coordinates.
-    </div>
+        <section class="table-section">
+            <h2>Supplies</h2>
 
-<script src="./app.js"></script>
+            <div class="table-controls">
+                <input
+                    type="text"
+                    id="searchInput"
+                    placeholder="Search..."
+                    autocomplete="off"
+                >
 
+                <select id="levelFilter">
+                    <option value="all">All Levels</option>
+                </select>
+            </div>
 
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Level</th>
+                            <th>X</th>
+                            <th>Y</th>
+                        </tr>
+                    </thead>
+                    <tbody id="supplyTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
 </body>
 </html>
