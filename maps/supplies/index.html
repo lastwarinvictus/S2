@@ -1,184 +1,412 @@
-<!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0" >
 <title>S2 Supplies</title>
 
-<link rel="stylesheet" href="css/styles.css">
+<link
+    rel="stylesheet"
+    href="css/styles.css"
+>
 
-</head> <body>
-<main class="app">
+</head> <body> <main class="app">
+<!-- ==========================================
+     HEADER
+=========================================== -->
 
-    <header class="app-header">
+<header class="app-header">
+
+    <div class="app-title">
+
+        <h1>S2 Supplies</h1>
+
+        <p class="subtitle">
+            Supply coordinates for Season 2
+        </p>
+
+    </div>
+
+
+    <div
+        class="data-status"
+        aria-live="polite"
+    >
+
+        <span
+            id="statusIndicator"
+            class="status-indicator"
+            aria-hidden="true"
+        ></span>
+
         <div>
-            <h1>S2 Supplies</h1>
-            <p class="subtitle">Supply coordinates for Season 2</p>
-        </div>
 
-        <div class="data-status">
-            <span id="statusIndicator" class="status-indicator"></span>
-
-            <div>
-                <div id="dataStatus">Loading...</div>
-                <div id="lastUpdated" class="last-updated">
-                    Data updated: loading...
-                </div>
+            <div id="dataStatus">
+                Loading...
             </div>
-        </div>
-    </header>
-
-
-    <section class="controls">
-
-        <div class="control-group">
-            <label for="levelFilter">Level</label>
-
-            <select id="levelFilter">
-                <option value="all">All Levels</option>
-                <option value="1">Level 1</option>
-                <option value="2">Level 2</option>
-                <option value="3">Level 3</option>
-                <option value="4">Level 4</option>
-                <option value="5">Level 5</option>
-                <option value="6">Level 6</option>
-                <option value="7">Level 7</option>
-            </select>
-        </div>
-
-        <div class="control-group">
-            <label for="searchInput">Search coordinates</label>
-
-            <input
-                id="searchInput"
-                type="search"
-                placeholder="e.g. 450, 300"
-                autocomplete="off"
-            >
-        </div>
-
-        <button id="clearFilters" class="secondary-button" type="button">
-            Clear filters
-        </button>
-
-    </section>
-
-
-    <nav class="tabs" aria-label="View selection">
-
-        <button
-            id="mapTab"
-            class="tab-button active"
-            type="button"
-            aria-selected="true"
-        >
-            Map
-        </button>
-
-        <button
-            id="tableTab"
-            class="tab-button"
-            type="button"
-            aria-selected="false"
-        >
-            Table
-        </button>
-
-    </nav>
-
-
-    <section id="mapView" class="view active">
-
-        <div class="map-toolbar">
-
-            <div class="map-info">
-                <span id="supplyCount">Loading supplies...</span>
-            </div>
-
-            <div class="map-actions">
-
-                <button
-                    id="resetMap"
-                    class="secondary-button"
-                    type="button"
-                >
-                    Reset view
-                </button>
-
-                <button
-                    id="copySelection"
-                    class="primary-button"
-                    type="button"
-                    disabled
-                >
-                    Copy selection
-                </button>
-
-            </div>
-
-        </div>
-
-
-        <div class="map-wrapper">
 
             <div
-                id="map"
-                class="map"
-                tabindex="0"
-                aria-label="Season 2 supply map"
+                id="lastUpdated"
+                class="last-updated"
             >
-                <div id="mapGrid" class="map-grid"></div>
-                <div id="mapPoints" class="map-points"></div>
-                <div id="selectionBox" class="selection-box"></div>
+                Data updated: loading...
             </div>
 
         </div>
 
+    </div>
 
-        <div id="selectionInfo" class="selection-info hidden">
-            <span id="selectionCount">0 supplies selected</span>
+</header>
+
+
+<!-- ==========================================
+     FILTERS
+=========================================== -->
+
+<section
+    class="controls"
+    aria-label="Supply filters"
+>
+
+    <div class="control-group">
+
+        <label for="levelFilter">
+            Level
+        </label>
+
+        <select id="levelFilter">
+
+            <option value="all">
+                All Levels
+            </option>
+
+            <option value="1">
+                Level 1
+            </option>
+
+            <option value="2">
+                Level 2
+            </option>
+
+            <option value="3">
+                Level 3
+            </option>
+
+            <option value="4">
+                Level 4
+            </option>
+
+            <option value="5">
+                Level 5
+            </option>
+
+            <option value="6">
+                Level 6
+            </option>
+
+            <option value="7">
+                Level 7
+            </option>
+
+        </select>
+
+    </div>
+
+
+    <div class="control-group control-search">
+
+        <label for="searchInput">
+            Search coordinates
+        </label>
+
+        <input
+            id="searchInput"
+            type="search"
+            placeholder="e.g. 450, 300"
+            autocomplete="off"
+            spellcheck="false"
+        >
+
+    </div>
+
+
+    <button
+        id="clearFilters"
+        class="secondary-button"
+        type="button"
+    >
+        Clear filters
+    </button>
+
+</section>
+
+
+<!-- ==========================================
+     VIEW TABS
+=========================================== -->
+
+<nav
+    class="tabs"
+    aria-label="View selection"
+    role="tablist"
+>
+
+    <button
+        id="mapTab"
+        class="tab-button active"
+        type="button"
+        role="tab"
+        aria-selected="true"
+        aria-controls="mapView"
+    >
+        <span class="tab-icon" aria-hidden="true">▦</span>
+        Map
+    </button>
+
+
+    <button
+        id="tableTab"
+        class="tab-button"
+        type="button"
+        role="tab"
+        aria-selected="false"
+        aria-controls="tableView"
+    >
+        <span class="tab-icon" aria-hidden="true">☷</span>
+        Table
+    </button>
+
+</nav>
+
+
+<!-- ==========================================
+     MAP VIEW
+=========================================== -->
+
+<section
+    id="mapView"
+    class="view active"
+    role="tabpanel"
+    aria-labelledby="mapTab"
+>
+
+    <div class="map-toolbar">
+
+        <div class="map-info">
+
+            <strong id="supplyCount">
+                Loading supplies...
+            </strong>
+
         </div>
 
-    </section>
+
+        <div class="map-actions">
+
+            <button
+                id="resetMap"
+                class="secondary-button"
+                type="button"
+            >
+                Reset view
+            </button>
 
 
-    <section id="tableView" class="view">
-
-        <div class="table-toolbar">
-
-            <div>
-                <strong id="tableCount">0 supplies</strong>
-            </div>
-
-        </div>
-
-        <div class="table-container">
-
-            <table id="suppliesTable">
-
-                <thead>
-                    <tr>
-                        <th scope="col">Level</th>
-                        <th scope="col">X</th>
-                        <th scope="col">Y</th>
-                    </tr>
-                </thead>
-
-                <tbody id="tableBody">
-                </tbody>
-
-            </table>
+            <button
+                id="copySelection"
+                class="primary-button"
+                type="button"
+                disabled
+            >
+                Copy selection
+            </button>
 
         </div>
 
-    </section>
+    </div>
 
 
-    <footer class="app-footer">
-        <span>S2 Supplies</span>
-        <span>•</span>
-        <span id="footerStatus">Loading data...</span>
-    </footer>
+    <!-- ======================================
+         MAP
+    ======================================= -->
 
-</main>
+    <div class="map-wrapper">
+
+        <div
+            id="map"
+            class="map"
+            tabindex="0"
+            aria-label="Season 2 supply map"
+        >
+
+            <div
+                id="mapGrid"
+                class="map-grid"
+                aria-hidden="true"
+            ></div>
 
 
-<script type="module" src="js/app.js"></script>
+            <div
+                id="mapPoints"
+                class="map-points"
+                aria-label="Supply locations"
+            ></div>
 
-</body> </html>
+
+            <div
+                id="selectionBox"
+                class="selection-box"
+                aria-hidden="true"
+            ></div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ======================================
+         MAP HELP
+    ======================================= -->
+
+    <div class="map-help">
+
+        <span class="map-help-item">
+            <span aria-hidden="true">🖱</span>
+            Drag to select supplies
+        </span>
+
+        <span class="map-help-divider" aria-hidden="true">
+            •
+        </span>
+
+        <span class="map-help-item">
+            <span aria-hidden="true">↕</span>
+            Scroll to zoom
+        </span>
+
+        <span class="map-help-divider" aria-hidden="true">
+            •
+        </span>
+
+        <span class="map-help-item">
+            <span aria-hidden="true">⇧</span>
+            Shift + drag to move the map
+        </span>
+
+    </div>
+
+
+    <!-- ======================================
+         SELECTION INFO
+    ======================================= -->
+
+    <div
+        id="selectionInfo"
+        class="selection-info hidden"
+        aria-live="polite"
+    >
+
+        <div class="selection-info-main">
+
+            <span
+                class="selection-indicator"
+                aria-hidden="true"
+            ></span>
+
+            <span id="selectionCount">
+                0 supplies selected
+            </span>
+
+        </div>
+
+
+        <span class="selection-hint">
+            Copy the coordinates to share with your alliance.
+        </span>
+
+    </div>
+
+</section>
+
+
+<!-- ==========================================
+     TABLE VIEW
+=========================================== -->
+
+<section
+    id="tableView"
+    class="view"
+    role="tabpanel"
+    aria-labelledby="tableTab"
+    hidden
+>
+
+    <div class="table-toolbar">
+
+        <div>
+
+            <strong id="tableCount">
+                0 supplies
+            </strong>
+
+            <span class="table-description">
+                matching current filters
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <div class="table-container">
+
+        <table id="suppliesTable">
+
+            <thead>
+
+                <tr>
+
+                    <th scope="col">
+                        Level
+                    </th>
+
+                    <th scope="col">
+                        X
+                    </th>
+
+                    <th scope="col">
+                        Y
+                    </th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody id="tableBody">
+            </tbody>
+
+        </table>
+
+    </div>
+
+</section>
+
+
+<!-- ==========================================
+     FOOTER
+=========================================== -->
+
+<footer class="app-footer">
+
+    <span>
+        S2 Supplies
+    </span>
+
+    <span aria-hidden="true">
+        •
+    </span>
+
+    <span id="footerStatus">
+        Loading data...
+    </span>
+
+</footer>
+
+</main> <script type="module" src="js/app.js" ></script> </body> </html>
