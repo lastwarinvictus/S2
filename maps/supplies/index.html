@@ -23,79 +23,8 @@
         Click a supply marker to see its coordinates.
     </div>
 
-    <script>
-        const map = document.getElementById("map-container");
-        const status = document.getElementById("status");
-        const info = document.getElementById("info");
+<script src="./app.js"></script>
 
-        async function loadSupplies() {
-            try {
-                const response = await fetch("./data/test-data.json");
-
-                if (!response.ok) {
-                    throw new Error(
-                        `HTTP ${response.status}: ${response.statusText}`
-                    );
-                }
-
-                const data = await response.json();
-
-                let total = 0;
-
-                data.strongholds.forEach(group => {
-
-                    group.coordinates.forEach(coordinate => {
-
-                        total++;
-
-                        const marker = document.createElement("div");
-
-                        marker.className = "coordinate";
-
-                        /*
-                         * API coordinates are 0–999.
-                         *
-                         * Convert them to percentages of the grid.
-                         */
-                        const left = coordinate.x / 10;
-                        const top = coordinate.y / 10;
-
-                        marker.style.left = `${left}%`;
-                        marker.style.top = `${top}%`;
-
-                        marker.style.backgroundColor = group.color;
-
-                        marker.title =
-                            `${group.label}: (${coordinate.x}, ${coordinate.y})`;
-
-                        marker.addEventListener("click", () => {
-                            info.textContent =
-                                `${group.label} — X: ${coordinate.x}, Y: ${coordinate.y}`;
-                        });
-
-                        map.appendChild(marker);
-                    });
-                });
-
-                const breakdown = data.strongholds
-                .map(group => `${group.label}: ${group.coordinates.length}`)
-                .join(" | ");
-
-                status.textContent =
-                    `Loaded ${total} supply coordinates — ${breakdown}`;
-
-
-            } catch (error) {
-
-                status.textContent =
-                    `ERROR: ${error.message}`;
-
-                console.error(error);
-            }
-        }
-
-        loadSupplies();
-    </script>
 
 </body>
 </html>
