@@ -289,30 +289,29 @@ Visual selection state
 -------------------------------------------------- */
 
 function applySelectionState() {
-const selectedKeys = new Set(
-selectedSupplies.map(
-supply => ${supply.x},${supply.y},${supply.level}
-)
-);
+    const selectedKeys = new Set(
+        selectedSupplies.map(
+            supply => `${supply.x},${supply.y},${supply.level}`
+        )
+    );
 
-pointsElement
-    .querySelectorAll(".supply-point")
-    .forEach(point => {
-        const key =
-            `${point.dataset.x},` +
-            `${point.dataset.y},` +
-            `${point.dataset.level}`;
+    pointsElement
+        .querySelectorAll(".supply-point")
+        .forEach(point => {
+            const key =
+                `${point.dataset.x},` +
+                `${point.dataset.y},` +
+                `${point.dataset.level}`;
 
-        point.classList.toggle(
-            "selected",
-            selectedKeys.has(key)
-        );
-    });
+            point.classList.toggle(
+                "selected",
+                selectedKeys.has(key)
+            );
+        });
 
-updateSelectionInfo();
-
-
+    updateSelectionInfo();
 }
+
 
 /* --------------------------------------------------
 Selection information
