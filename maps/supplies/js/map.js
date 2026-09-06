@@ -1,22 +1,22 @@
-const GRID_SIZE = 13;
-const WORLD_SIZE = 1000;
-
 let mapElement;
 let gridElement;
 let pointsElement;
 let resetButton;
 
-let supplies = [];
+let currentSupplies = [];
 
-let view = {
-scale: 1,
-x: 0,
-y: 0
-};
+const MAP_SIZE = 1000;
+const GRID_SIZE = 13;
+
+let scale = 1;
+let offsetX = 0;
+let offsetY = 0;
 
 let dragging = false;
-let dragStart = null;
-let dragOrigin = null;
+let dragStartX = 0;
+let dragStartY = 0;
+let initialOffsetX = 0;
+let initialOffsetY = 0;
 
 /* --------------------------------------------------
 Initialize
@@ -34,15 +34,19 @@ pointsElement = points;
 resetButton = reset;
 
 createGrid();
-setupPan();
-setupReset();
+setupInteraction();
+updateTransform();
 
-renderTransform();
+resetButton?.addEventListener(
+    "click",
+    resetView
+);
+
 
 return {
     render,
-    reset,
-    getView: () => ({ ...view })
+    resetView,
+    getTransform
 };
 
 
@@ -55,16 +59,80 @@ Grid
 function createGrid() {
 gridElement.innerHTML = "";
 
-for (let row = 0; row < GRID_SIZE; row++) {
-    for (let column = 0; column < GRID_SIZE; column++) {
-        const cell = document.createElement("div");
+for (let i = 0; i <= GRID_SIZE; i++) {
+    const percentage =
+        (i / GRID_SIZE) * 100;
 
-        cell.className = "grid-cell";
 
-        cell.dataset.row = row;
-        cell.dataset.column = column;
+    /*
+     * Vertical line
+     */
+    const vertical =
+        document.createElement("div");
 
-        gridElement.appendChild(cell);
+    vertical.className =
+        "grid-line grid-line-vertical";
+
+    vertical.style.left =
+        `${percentage}%`;
+
+    gridElement.appendChild(vertical);
+
+
+    /*
+     * Horizontal line
+     */
+    const horizontal =
+        document.createElement("div");
+
+    horizontal.className =
+        "grid-line grid-line-horizontal";
+
+    horizontal.style.top =
+        `${percentage}%`;
+
+    gridElement.appendChild(horizontal);
+
+
+    /*
+     * Coordinate labels.
+     *
+     * We only need labels for the 13 grid divisions,
+     * not the final duplicate line.
+     */
+    if (i < GRID_SIZE) {
+        const xLabel =
+            document.createElement("span");
+
+        xLabel.className =
+            "grid-label grid-label-x";
+
+        xLabel.textContent =
+            `${Math.round(
+                (i / GRID_SIZE) * MAP_SIZE
+            )}`;
+
+        xLabel.style.left =
+            `${percentage}%`;
+
+        gridElement.appendChild(xLabel);
+
+
+        const yLabel =
+            document.createElement("span");
+
+        yLabel.className =
+            "grid-label grid-label-y";
+
+        yLabel.textContent =
+            `${Math.round(
+                (i / GRID_SIZE) * MAP_SIZE
+            )}`;
+
+        yLabel.style.top =
+            `${percentage}%`;
+
+        gridElement.appendChild(yLabel);
     }
 }
 
@@ -72,201 +140,353 @@ for (let row = 0; row < GRID_SIZE; row++) {
 }
 
 /* --------------------------------------------------
-Rendering
+Render supplies
 -------------------------------------------------- */
 
-function render(newSupplies) {
-supplies = Array.isArray(newSupplies)
-? newSupplies
+function render(supplies) {
+currentSupplies =
+Array.isArray(supplies)
+? supplies
 : [];
 
 pointsElement.innerHTML = "";
 
-const fragment = document.createDocumentFragment();
 
-for (const supply of supplies) {
-    const point = document.createElement("div");
+for (const supply of currentSupplies) {
+    const point =
+        document.createElement("button");
 
-    point.className = "supply-point";
+    point.type = "button";
 
-    point.dataset.x = supply.x;
-    point.dataset.y = supply.y;
-    point.dataset.level = supply.level;
+    point.className =
+        "supply-point";
 
-    point.title =
-        `${supply.label || `Level ${supply.level}`} — ` +
-        `X: ${supply.x}, Y: ${supply.y}`;
 
-    point.style.backgroundColor =
-        supply.color || getDefaultLevelColor(supply.level);
+    point.dataset.x =
+        String(supply.x);
 
-    const position = coordinateToPercent(
-        supply.x,
-        supply.y
+    point.dataset.y =
+        String(supply.y);
+
+    point.dataset.level =
+        String(supply.level);
+
+
+    point.setAttribute(
+        "aria-label",
+        `Level ${supply.level} supply at ` +
+        `${supply.x}, ${supply.y}`
     );
 
-    point.style.left = `${position.x}%`;
-    point.style.top = `${position.y}%`;
 
-    fragment.appendChild(point);
+    /*
+     * The API uses a 0–999 coordinate system.
+     * Convert it to percentage positioning.
+     */
+    point.style.left =
+        `${(supply.x / MAP_SIZE) * 100}%`;
+
+    point.style.top =
+        `${(supply.y / MAP_SIZE) * 100}%`;
+
+
+    /*
+     * Preserve the level colour supplied by the API.
+     */
+    if (supply.color) {
+        point.style.setProperty(
+            "--supply-color",
+            supply.color
+        );
+    }
+
+
+    /*
+     * Some data structures may store the colour on
+     * the level object rather than directly on supply.
+     */
+    if (!supply.color && supply.levelColor) {
+        point.style.setProperty(
+            "--supply-color",
+            supply.levelColor
+        );
+    }
+
+
+    pointsElement.appendChild(point);
 }
 
-pointsElement.appendChild(fragment);
+
+updateTransform();
 
 
 }
 
 /* --------------------------------------------------
-Coordinate conversion
+Pan / zoom
 -------------------------------------------------- */
 
-/**
+function setupInteraction() {
 
-The API uses a 0–999 coordinate system.
-The map itself is represented as a 13×13 grid.
-The grid is visual; coordinates remain in the original
-world coordinate system.
-*/
-function coordinateToPercent(x, y) {
-return {
-x: clamp((x / WORLD_SIZE) * 100, 0, 100),
-y: clamp((y / WORLD_SIZE) * 100, 0, 100)
-};
-}
-
-/* --------------------------------------------------
-Pan
--------------------------------------------------- */
-
-function setupPan() {
-mapElement.addEventListener("pointerdown", event => {
 /*
-* Don't start panning when interacting with a supply.
-*/
-if (event.target.closest(".supply-point")) {
+ * Wheel zoom
+ */
+mapElement.addEventListener(
+    "wheel",
+    event => {
+        event.preventDefault();
+
+        const rect =
+            mapElement.getBoundingClientRect();
+
+
+        const mouseX =
+            event.clientX - rect.left;
+
+        const mouseY =
+            event.clientY - rect.top;
+
+
+        const zoomFactor =
+            event.deltaY < 0
+                ? 1.12
+                : 0.89;
+
+
+        const newScale =
+            clamp(
+                scale * zoomFactor,
+                1,
+                8
+            );
+
+
+        /*
+         * Keep the point underneath the mouse
+         * stationary while zooming.
+         */
+        const mapX =
+            (mouseX - offsetX) / scale;
+
+        const mapY =
+            (mouseY - offsetY) / scale;
+
+
+        offsetX =
+            mouseX - mapX * newScale;
+
+        offsetY =
+            mouseY - mapY * newScale;
+
+
+        scale = newScale;
+
+        constrainPan();
+        updateTransform();
+    },
+    { passive: false }
+);
+
+
+/*
+ * Pan
+ */
+mapElement.addEventListener(
+    "pointerdown",
+    event => {
+
+        /*
+         * Only pan with the middle mouse button
+         * or when holding Space.
+         *
+         * Left mouse remains available for
+         * rectangle selection.
+         */
+        const panRequested =
+            event.button === 1 ||
+            event.button === 2 ||
+            event.shiftKey ||
+            event.altKey;
+
+
+        if (!panRequested) {
+            return;
+        }
+
+
+        event.preventDefault();
+
+        dragging = true;
+
+        dragStartX =
+            event.clientX;
+
+        dragStartY =
+            event.clientY;
+
+        initialOffsetX =
+            offsetX;
+
+        initialOffsetY =
+            offsetY;
+
+
+        mapElement.setPointerCapture(
+            event.pointerId
+        );
+
+        mapElement.classList.add(
+            "is-panning"
+        );
+    }
+);
+
+
+mapElement.addEventListener(
+    "pointermove",
+    event => {
+        if (!dragging) {
+            return;
+        }
+
+
+        offsetX =
+            initialOffsetX +
+            (event.clientX - dragStartX);
+
+        offsetY =
+            initialOffsetY +
+            (event.clientY - dragStartY);
+
+
+        constrainPan();
+        updateTransform();
+    }
+);
+
+
+mapElement.addEventListener(
+    "pointerup",
+    stopDragging
+);
+
+mapElement.addEventListener(
+    "pointercancel",
+    stopDragging
+);
+
+
+/*
+ * Prevent the browser context menu when using
+ * right-click to pan.
+ */
+mapElement.addEventListener(
+    "contextmenu",
+    event => {
+        if (dragging) {
+            event.preventDefault();
+        }
+    }
+);
+
+
+}
+
+/* --------------------------------------------------
+Stop panning
+-------------------------------------------------- */
+
+function stopDragging(event) {
+if (!dragging) {
 return;
 }
 
-    dragging = true;
+dragging = false;
 
-    mapElement.setPointerCapture(event.pointerId);
-
-    dragStart = {
-        x: event.clientX,
-        y: event.clientY
-    };
-
-    dragOrigin = {
-        x: view.x,
-        y: view.y
-    };
-});
+mapElement.classList.remove(
+    "is-panning"
+);
 
 
-mapElement.addEventListener("pointermove", event => {
-    if (!dragging) {
-        return;
-    }
-
-    const dx = event.clientX - dragStart.x;
-    const dy = event.clientY - dragStart.y;
-
-    view.x = dragOrigin.x + dx;
-    view.y = dragOrigin.y + dy;
-
-    renderTransform();
-});
-
-
-const stopDragging = event => {
-    if (!dragging) {
-        return;
-    }
-
-    dragging = false;
-
-    try {
-        mapElement.releasePointerCapture(event.pointerId);
-    } catch {
-        // Pointer capture may already have been released.
-    }
-};
-
-
-mapElement.addEventListener("pointerup", stopDragging);
-mapElement.addEventListener("pointercancel", stopDragging);
-mapElement.addEventListener("pointerleave", event => {
-    if (event.buttons === 0) {
-        stopDragging(event);
-    }
-});
+try {
+    mapElement.releasePointerCapture(
+        event.pointerId
+    );
+} catch {
+    // Pointer capture may already be released.
+}
 
 
 }
-
-/* --------------------------------------------------
-Zoom
--------------------------------------------------- */
-
-mapElement?.addEventListener("wheel", event => {
-event.preventDefault();
-
-const direction = event.deltaY < 0 ? 1 : -1;
-
-const factor = direction > 0
-    ? 1.1
-    : 0.9;
-
-const oldScale = view.scale;
-
-const newScale = clamp(
-    oldScale * factor,
-    0.5,
-    5
-);
-
-/*
- * Zoom around the cursor instead of the center.
- */
-const rect = mapElement.getBoundingClientRect();
-
-const mouseX = event.clientX - rect.left;
-const mouseY = event.clientY - rect.top;
-
-view.x =
-    mouseX -
-    ((mouseX - view.x) / oldScale) * newScale;
-
-view.y =
-    mouseY -
-    ((mouseY - view.y) / oldScale) * newScale;
-
-view.scale = newScale;
-
-renderTransform();
-
-
-}, { passive: false });
 
 /* --------------------------------------------------
 Transform
 -------------------------------------------------- */
 
-function renderTransform() {
+function updateTransform() {
+/*
+* The grid and points share exactly the same transform.
+*/
 const transform =
-translate(${view.x}px, ${view.y}px) scale(${view.scale});
+translate(${offsetX}px, ${offsetY}px) +
+scale(${scale});
+
+gridElement.style.transform =
+    transform;
+
+pointsElement.style.transform =
+    transform;
+
+
+}
+
+/* --------------------------------------------------
+Pan constraints
+-------------------------------------------------- */
+
+function constrainPan() {
+const rect =
+mapElement.getBoundingClientRect();
 
 /*
- * Transform the map contents together.
- *
- * The grid and points are both positioned in the same
- * coordinate space.
+ * At scale 1 the map fills the viewport.
+ * Once zoomed, the scaled map may extend beyond
+ * the viewport and can be panned.
  */
-gridElement.style.transform = transform;
-pointsElement.style.transform = transform;
+const mapWidth =
+    rect.width * scale;
 
-gridElement.style.transformOrigin = "0 0";
-pointsElement.style.transformOrigin = "0 0";
+const mapHeight =
+    rect.height * scale;
+
+
+if (scale <= 1) {
+    offsetX = 0;
+    offsetY = 0;
+    return;
+}
+
+
+const minX =
+    rect.width - mapWidth;
+
+const minY =
+    rect.height - mapHeight;
+
+
+offsetX =
+    clamp(
+        offsetX,
+        minX,
+        0
+    );
+
+offsetY =
+    clamp(
+        offsetY,
+        minY,
+        0
+    );
 
 
 }
@@ -275,18 +495,13 @@ pointsElement.style.transformOrigin = "0 0";
 Reset
 -------------------------------------------------- */
 
-function setupReset() {
-resetButton?.addEventListener("click", reset);
-}
+function resetView() {
+scale = 1;
 
-function reset() {
-view = {
-scale: 1,
-x: 0,
-y: 0
-};
+offsetX = 0;
+offsetY = 0;
 
-renderTransform();
+updateTransform();
 
 
 }
@@ -296,21 +511,20 @@ Helpers
 -------------------------------------------------- */
 
 function clamp(value, min, max) {
-return Math.min(Math.max(value, min), max);
+return Math.min(
+Math.max(value, min),
+max
+);
 }
 
-function getDefaultLevelColor(level) {
-const colors = {
-1: "#FF0000",
-2: "#00FF00",
-3: "#0000FF",
-4: "#FFFF00",
-5: "#FF00FF",
-6: "#00FFFF",
-7: "#FFA500"
+/* --------------------------------------------------
+Public transform information
+-------------------------------------------------- */
+
+function getTransform() {
+return {
+scale,
+offsetX,
+offsetY
 };
-
-return colors[level] || "#FFFFFF";
-
-
 }
