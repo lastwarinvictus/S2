@@ -483,15 +483,17 @@ MAP
 ================================================== */
 
 .map {
-position: relative;
+    position: relative;
 
-width: 100%;
-aspect-ratio: 1 / 1;
+    width: 100%;
+    aspect-ratio: 1 / 1;
 
-max-height: min(
-    calc(100vh - 280px),
-    900px
-);
+    max-width: 900px;
+    margin: 0 auto;
+
+    overflow: hidden;
+}
+
 
 margin: 0 auto;
 
