@@ -4,6 +4,7 @@ let selectionBoxElement = null;
 let selectionInfoElement = null;
 let selectionCountElement = null;
 let copyButton = null;
+let clearButton = null;
 
 let supplies = [];
 let selectedSupplies = [];
@@ -21,7 +22,8 @@ pointsElement: points,
 selectionBoxElement: selectionBox,
 selectionInfoElement: selectionInfo,
 selectionCountElement: selectionCount,
-copyButton: copy
+copyButton: copy,
+clearButton: clear
 }) {
 mapElement = map;
 pointsElement = points;
@@ -30,9 +32,12 @@ selectionBoxElement = selectionBox;
 selectionInfoElement = selectionInfo;
 selectionCountElement = selectionCount;
 copyButton = copy;
+clearButton = clear;
 
 setupPointerSelection();
 setupCopyButton();
+setupClearButton();
+setupKeyboardControls();
 
 return {
     setSupplies,
@@ -318,28 +323,36 @@ Selection information
 -------------------------------------------------- */
 
 function updateSelectionInfo() {
-const count = selectedSupplies.length;
+    const count = selectedSupplies.length;
 
-if (count === 0) {
-    selectionInfoElement.classList.add("hidden");
-    copyButton.disabled = true;
+    if (count === 0) {
+        selectionInfoElement.classList.add("hidden");
+
+        copyButton.disabled = true;
+
+        if (clearButton) {
+            clearButton.disabled = true;
+        }
+
+        selectionCountElement.textContent =
+            "0 supplies selected";
+
+        return;
+    }
+
+    selectionInfoElement.classList.remove("hidden");
+
+    copyButton.disabled = false;
+
+    if (clearButton) {
+        clearButton.disabled = false;
+    }
 
     selectionCountElement.textContent =
-        "0 supplies selected";
-
-    return;
+        `${count.toLocaleString()} ` +
+        `suppl${count === 1 ? "y" : "ies"} selected`;
 }
 
-selectionInfoElement.classList.remove("hidden");
-
-copyButton.disabled = false;
-
-selectionCountElement.textContent =
-    `${count.toLocaleString()} ` +
-    `supply${count === 1 ? "" : "ies"} selected`;
-
-
-}
 
 /* --------------------------------------------------
 Clear
@@ -410,6 +423,30 @@ return;
 
 
 }
+
+
+function setupClearButton() {
+    if (!clearButton) {
+        return;
+    }
+
+    clearButton.addEventListener("click", () => {
+        clearSelection();
+    });
+}
+
+function setupKeyboardControls() {
+    document.addEventListener("keydown", event => {
+        if (event.key === "Escape") {
+            if (selecting) {
+                cancelSelection();
+            } else if (selectedSupplies.length > 0) {
+                clearSelection();
+            }
+        }
+    });
+}
+
 
 /* --------------------------------------------------
 Share format
