@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>S2 Supplies Map</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #111;
+            color: #eee;
+            font-family: Arial, sans-serif;
+        }
+
+        h1 {
+            margin-top: 0;
+        }
+
+        #status {
+            margin-bottom: 15px;
+            color: #aaa;
+        }
+
+        #map-container {
+            width: min(90vw, 800px);
+            aspect-ratio: 1 / 1;
+
+            position: relative;
+
+            background:
+                linear-gradient(#333 1px, transparent 1px),
+                linear-gradient(90deg, #333 1px, transparent 1px);
+
+            background-size: 10% 10%;
+
+            border: 2px solid #555;
+
+            overflow: hidden;
+        }
+
+        .coordinate {
+            position: absolute;
+
+            width: 8px;
+            height: 8px;
+
+            border-radius: 50%;
+
+            transform: translate(-50%, -50%);
+
+            cursor: pointer;
+
+            border: 1px solid rgba(255,255,255,0.7);
+        }
+
+        .coordinate:hover {
+            transform: translate(-50%, -50%) scale(2);
+            z-index: 10;
+        }
+
+        #info {
+            margin-top: 15px;
+            padding: 10px;
+
+            background: #222;
+            border: 1px solid #444;
+
+            min-height: 40px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Season 2 — Supplies</h1>
+
+    <div id="status">
+        Loading coordinates...
+    </div>
+
+    <div id="map-container"></div>
+
+    <div id="info">
+        Click a supply marker to see its coordinates.
+    </div>
+
+    <script>
+        const map = document.getElementById("map-container");
+        const status = document.getElementById("status");
+        const info = document.getElementById("info");
+
+        async function loadSupplies() {
+            try {
+                const response = await fetch("./data/test-data.json");
+
+                if (!response.ok) {
+                    throw new Error(
+                        `HTTP ${response.status}: ${response.statusText}`
+                    );
+                }
+
+                const data = await response.json();
+
+                let total = 0;
+
+                data.strongholds.forEach(group => {
+
+                    group.coordinates.forEach(coordinate => {
+
+                        total++;
+
+                        const marker = document.createElement("div");
+
+                        marker.className = "coordinate";
+
+                        /*
+                         * API coordinates are 0–999.
+                         *
+                         * Convert them to percentages of the grid.
+                         */
+                        const left = coordinate.x / 10;
+                        const top = coordinate.y / 10;
+
+                        marker.style.left = `${left}%`;
+                        marker.style.top = `${top}%`;
+
+                        marker.style.backgroundColor = group.color;
+
+                        marker.title =
+                            `${group.label}: (${coordinate.x}, ${coordinate.y})`;
+
+                        marker.addEventListener("click", () => {
+                            info.textContent =
+                                `${group.label} — X: ${coordinate.x}, Y: ${coordinate.y}`;
+                        });
+
+                        map.appendChild(marker);
+                    });
+                });
+
+                status.textContent =
+                    `Loaded ${total} supply coordinates.`;
+
+            } catch (error) {
+
+                status.textContent =
+                    `ERROR: ${error.message}`;
+
+                console.error(error);
+            }
+        }
+
+        loadSupplies();
+    </script>
+
+</body>
+</html>
