@@ -1,64 +1,184 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>S2 Supplies Map</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
+<!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S2 Supplies</title>
 
-    <main class="container">
-        <header>
-            <h1>S2 Supplies Map</h1>
-            <div id="dataUpdated" class="data-updated">
-                Data updated: loading...
+<link rel="stylesheet" href="css/styles.css">
+
+</head> <body>
+<main class="app">
+
+    <header class="app-header">
+        <div>
+            <h1>S2 Supplies</h1>
+            <p class="subtitle">Supply coordinates for Season 2</p>
+        </div>
+
+        <div class="data-status">
+            <span id="statusIndicator" class="status-indicator"></span>
+
+            <div>
+                <div id="dataStatus">Loading...</div>
+                <div id="lastUpdated" class="last-updated">
+                    Data updated: loading...
+                </div>
             </div>
-        </header>
+        </div>
+    </header>
 
-        <section class="stats">
-            <div class="stat">
-                <span class="stat-label">Supplies</span>
-                <span id="supplyCount" class="stat-value">Loading...</span>
+
+    <section class="controls">
+
+        <div class="control-group">
+            <label for="levelFilter">Level</label>
+
+            <select id="levelFilter">
+                <option value="all">All Levels</option>
+                <option value="1">Level 1</option>
+                <option value="2">Level 2</option>
+                <option value="3">Level 3</option>
+                <option value="4">Level 4</option>
+                <option value="5">Level 5</option>
+                <option value="6">Level 6</option>
+                <option value="7">Level 7</option>
+            </select>
+        </div>
+
+        <div class="control-group">
+            <label for="searchInput">Search coordinates</label>
+
+            <input
+                id="searchInput"
+                type="search"
+                placeholder="e.g. 450, 300"
+                autocomplete="off"
+            >
+        </div>
+
+        <button id="clearFilters" class="secondary-button" type="button">
+            Clear filters
+        </button>
+
+    </section>
+
+
+    <nav class="tabs" aria-label="View selection">
+
+        <button
+            id="mapTab"
+            class="tab-button active"
+            type="button"
+            aria-selected="true"
+        >
+            Map
+        </button>
+
+        <button
+            id="tableTab"
+            class="tab-button"
+            type="button"
+            aria-selected="false"
+        >
+            Table
+        </button>
+
+    </nav>
+
+
+    <section id="mapView" class="view active">
+
+        <div class="map-toolbar">
+
+            <div class="map-info">
+                <span id="supplyCount">Loading supplies...</span>
             </div>
-        </section>
 
-        <section class="map-section">
-            <div id="map" class="map"></div>
-        </section>
+            <div class="map-actions">
 
-        <section class="table-section">
-            <h2>Supplies</h2>
-
-            <div class="table-controls">
-                <input
-                    type="text"
-                    id="searchInput"
-                    placeholder="Search..."
-                    autocomplete="off"
+                <button
+                    id="resetMap"
+                    class="secondary-button"
+                    type="button"
                 >
+                    Reset view
+                </button>
 
-                <select id="levelFilter">
-                    <option value="all">All Levels</option>
-                </select>
+                <button
+                    id="copySelection"
+                    class="primary-button"
+                    type="button"
+                    disabled
+                >
+                    Copy selection
+                </button>
+
             </div>
 
-            <div class="table-wrapper">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Level</th>
-                            <th>X</th>
-                            <th>Y</th>
-                        </tr>
-                    </thead>
-                    <tbody id="supplyTableBody">
-                    </tbody>
-                </table>
-            </div>
-        </section>
-    </main>
+        </div>
 
-    <script src="app.js"></script>
-</body>
-</html>
+
+        <div class="map-wrapper">
+
+            <div
+                id="map"
+                class="map"
+                tabindex="0"
+                aria-label="Season 2 supply map"
+            >
+                <div id="mapGrid" class="map-grid"></div>
+                <div id="mapPoints" class="map-points"></div>
+                <div id="selectionBox" class="selection-box"></div>
+            </div>
+
+        </div>
+
+
+        <div id="selectionInfo" class="selection-info hidden">
+            <span id="selectionCount">0 supplies selected</span>
+        </div>
+
+    </section>
+
+
+    <section id="tableView" class="view">
+
+        <div class="table-toolbar">
+
+            <div>
+                <strong id="tableCount">0 supplies</strong>
+            </div>
+
+        </div>
+
+        <div class="table-container">
+
+            <table id="suppliesTable">
+
+                <thead>
+                    <tr>
+                        <th scope="col">Level</th>
+                        <th scope="col">X</th>
+                        <th scope="col">Y</th>
+                    </tr>
+                </thead>
+
+                <tbody id="tableBody">
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+
+    <footer class="app-footer">
+        <span>S2 Supplies</span>
+        <span>•</span>
+        <span id="footerStatus">Loading data...</span>
+    </footer>
+
+</main>
+
+
+<script type="module" src="js/app.js"></script>
+
+</body> </html>
