@@ -342,6 +342,8 @@ elements.tableView.classList.toggle(
     !mapActive
 );
 
+elements.mapView.hidden = !mapActive;
+elements.tableView.hidden = mapActive;   
 
 }
 
