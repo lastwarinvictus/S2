@@ -424,21 +424,17 @@ Transform
 -------------------------------------------------- */
 
 function updateTransform() {
-/*
-* The grid and points share exactly the same transform.
-*/
-const transform =
-translate(${offsetX}px, ${offsetY}px) +
-scale(${scale});
+    /*
+     * The grid and points share exactly the same transform.
+     */
+    const transform =
+        `translate(${offsetX}px, ${offsetY}px) ` +
+        `scale(${scale})`;
 
-gridElement.style.transform =
-    transform;
-
-pointsElement.style.transform =
-    transform;
-
-
+    gridElement.style.transform = transform;
+    pointsElement.style.transform = transform;
 }
+
 
 /* --------------------------------------------------
 Pan constraints
