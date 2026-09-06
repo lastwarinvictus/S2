@@ -1,5 +1,5 @@
-const DATA_URL = "../data/test-data.json";
-const TIMESTAMP_URL = "../data/last-updated.json";
+const DATA_URL = "./data/test-data.json";
+const TIMESTAMP_URL = "./data/last-updated.json";
 
 /**
  * Load the supplies data and timestamp.
