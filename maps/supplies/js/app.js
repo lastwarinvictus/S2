@@ -58,6 +58,8 @@ pointsElement: elements.mapPoints,
 resetButton: elements.resetMap
 });
 
+window.s2SuppliesMap = map;
+
 const table = initializeTable({
 tableBody: elements.tableBody
 });
