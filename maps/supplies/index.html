@@ -145,8 +145,13 @@
                     });
                 });
 
+                const breakdown = data.strongholds
+                .map(group => `${group.label}: ${group.coordinates.length}`)
+                .join(" | ");
+
                 status.textContent =
-                    `Loaded ${total} supply coordinates.`;
+                    `Loaded ${total} supply coordinates — ${breakdown}`;
+
 
             } catch (error) {
 
