@@ -248,17 +248,37 @@ Coordinate → screen position
 
 function getSupplyScreenPosition(supply, mapRect) {
 /*
-* The current map uses a 0–999 coordinate system.
+* Ask the map for its current transform.
 */
-const x =
-(supply.x / 1000) * mapRect.width;
+const transform =
+window.s2SuppliesMap?.getTransform?.() || {
+scale: 1,
+offsetX: 0,
+offsetY: 0
+};
 
-const y =
+/*
+ * Convert API coordinates (0–999) into the
+ * untransformed map's pixel coordinates.
+ */
+const mapX =
+    (supply.x / 1000) * mapRect.width;
+
+const mapY =
     (supply.y / 1000) * mapRect.height;
 
+
+/*
+ * Apply the same transform used by map.js.
+ */
 return {
-    x,
-    y
+    x:
+        mapX * transform.scale +
+        transform.offsetX,
+
+    y:
+        mapY * transform.scale +
+        transform.offsetY
 };
 
 
