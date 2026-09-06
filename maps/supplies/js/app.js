@@ -39,6 +39,7 @@ selectionBox: document.getElementById("selectionBox"),
 selectionInfo: document.getElementById("selectionInfo"),
 selectionCount: document.getElementById("selectionCount"),
 copySelection: document.getElementById("copySelection"),
+clearSelection: document.getElementById("clearSelection"),
 
 resetMap: document.getElementById("resetMap"),
 
@@ -70,7 +71,8 @@ pointsElement: elements.mapPoints,
 selectionBoxElement: elements.selectionBox,
 selectionInfoElement: elements.selectionInfo,
 selectionCountElement: elements.selectionCount,
-copyButton: elements.copySelection
+copyButton: elements.copySelection,
+clearButton: elements.clearSelection
 });
 
 const filters = initializeFilters({
