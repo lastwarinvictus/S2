@@ -3,6 +3,9 @@ name: Update S2 Supplies Data
 on:
   workflow_dispatch:
 
+  schedule:
+    - cron: "0 */4 * * *"
+
 permissions:
   contents: write
 
@@ -21,22 +24,92 @@ jobs:
             --silent \
             --show-error \
             "https://cpt-hedge.com/api/coordinates?season=2" \
-            -o maps/supplies/data/test-data.json
+            -o /tmp/supplies.json
 
       - name: Validate JSON
         run: |
-          python -m json.tool maps/supplies/data/test-data.json > /dev/null
+          python -m json.tool /tmp/supplies.json > /dev/null
+
+      - name: Validate API structure
+        run: |
+          python - <<'PY'
+          import json
+
+          path = "/tmp/supplies.json"
+
+          with open(path, "r", encoding="utf-8") as f:
+              data = json.load(f)
+
+          if not isinstance(data, dict):
+              raise SystemExit("API response is not a JSON object.")
+
+          if "strongholds" not in data:
+              raise SystemExit("Missing 'strongholds' in API response.")
+
+          if not isinstance(data["strongholds"], list):
+              raise SystemExit("'strongholds' is not an array.")
+
+          if "cities" not in data:
+              raise SystemExit("Missing 'cities' in API response.")
+
+          if not isinstance(data["cities"], list):
+              raise SystemExit("'cities' is not an array.")
+
+          print("API structure looks valid.")
+          PY
+
+      - name: Compare with existing data
+        id: compare
+        run: |
+          if [ ! -f maps/supplies/data/test-data.json ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "No existing data file found."
+            exit 0
+          fi
+
+          if cmp -s /tmp/supplies.json maps/supplies/data/test-data.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No data changes detected."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "Data changes detected."
+          fi
+
+      - name: Update data files
+        if: steps.compare.outputs.changed == 'true'
+        run: |
+          cp /tmp/supplies.json maps/supplies/data/test-data.json
+
+          python - <<'PY'
+          import json
+          from datetime import datetime, timezone
+
+          timestamp = datetime.now(timezone.utc).isoformat()
+
+          data = {
+              "updatedAt": timestamp
+          }
+
+          with open(
+              "maps/supplies/data/last-updated.json",
+              "w",
+              encoding="utf-8"
+          ) as f:
+              json.dump(data, f, indent=2)
+
+              f.write("\n")
+
+          print(f"Data updated at: {timestamp}")
+          PY
 
       - name: Commit updated data
+        if: steps.compare.outputs.changed == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           git add maps/supplies/data/test-data.json
+          git add maps/supplies/data/last-updated.json
 
-          if git diff --cached --quiet; then
-            echo "No changes detected."
-          else
-            git commit -m "Update S2 supplies data"
-            git push
-          fi
+          git commit -m "Update S2 supplies data"
+          git push
